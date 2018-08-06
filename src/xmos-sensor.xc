@@ -74,9 +74,28 @@ void wait_button_and_time()
 	}
 }
 
+/*
+ * motion sensor powered with 3.3
+ * connected to 1F
+ */
+
+in port p1F = XS1_PORT_1F;
+void motion_sensor()
+{
+	int port_v;
+	p1F :> port_v;
+	while(1)
+	select
+	{
+		case p1F when pinsneq ( port_v ) :> port_v:
+			led2 <: port_v;
+			break;
+	}
+}
+
 int main()
 {
-	wait_button_and_time();
+	motion_sensor();
 	while (1)
 	{
 		p32A <: ~leds_x;
