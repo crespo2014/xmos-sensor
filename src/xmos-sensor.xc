@@ -1,6 +1,8 @@
 #include <platform.h>
 #include <xs1.h>
 #include <timer.h>
+#include <stdio.h>
+
 port p = XS1_PORT_1A;
 port led2 = XS1_PORT_1D;
 port p32A = XS1_PORT_32A;
@@ -40,16 +42,34 @@ void wait_button()
 
 void wait_button_and_time()
 {
+	int periodic_enabled = 1;
 	timer tmr ;
 	unsigned time ;
 	int pos = 0;
 	tmr :> time ;
+	int port_v;
+	p32A :> port_v;
 	while(1)
 	select
 	{
-		case tmr when timerafter ( time ) :> int now :
+		case p32A when pinsneq ( port_v ) :> port_v:
+			periodic_enabled = !periodic_enabled;
+			if (periodic_enabled)
+			{
+				tmr :> time;
+				time += (ts_sec / 4);
+			}
+			led2 <: !(port_v & button_pin_32a0);
+			printf("Input received on port_input\r\n");
+//			if (!(port_v & button_pin_32a0))
+//			{
+//
+//			}
+			break ;
+		case periodic_enabled => tmr when timerafter ( time ) :> void:
 			time += (ts_sec / 4);
-			all_leds(pos);
+			//all_leds(pos);
+			printf("timeout\r\n");
 			break;
 	}
 }
